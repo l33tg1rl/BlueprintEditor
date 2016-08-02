@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
-using System.Globalization;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
@@ -19,18 +18,7 @@ namespace BlueprintEditor
         private Point3D _cursorPosition;
         private Point3D _cameraPosition;
         private Color _selectedColor;
-        private ModelVisual3DContainer _blueprint;
-
-        public ModelVisual3DContainer Blueprint
-        {
-            get { return _blueprint; }
-            set
-            {
-                if (_blueprint == value) return;
-                _blueprint = value;
-                OnPropertyChanged();
-            }
-        }
+        private const double Threshold = .0000000000000000001;
 
         public ObservableCollection<BoxVisual3D> Voxels
         {
@@ -156,7 +144,7 @@ namespace BlueprintEditor
             double x, y, z, offset;
             Point3D voxelPoint;
 
-            if (Math.IEEERemainder(cursorPosition.X, .5) == 0)
+            if (Math.Abs(Math.IEEERemainder(cursorPosition.X, .5)) < Threshold)
             {
                 x = (cameraPosition.X > cursorPosition.X ? -1 : 1) * .5 + cursorPosition.X;
                 y = Math.Round(cursorPosition.Y);
@@ -164,7 +152,7 @@ namespace BlueprintEditor
                 offset = cameraPosition.X > 0 ? 1 : -1;
                 voxelPoint = new Point3D(x + offset, y, z);
             }
-            else if (Math.IEEERemainder(cursorPosition.Y, .5) == 0)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Y, .5)) < Threshold)
             {
                 x = Math.Round(cursorPosition.X);
                 y = (cameraPosition.Y > cursorPosition.Y ? -1 : 1) * .5 + cursorPosition.Y;
@@ -172,7 +160,7 @@ namespace BlueprintEditor
                 offset = cameraPosition.Y > 0 ? 1 : -1;
                 voxelPoint = new Point3D(x, y + offset, z);
             }
-            else if (Math.IEEERemainder(cursorPosition.Z, .5) == 0)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Z, .5)) < Threshold)
             {
                 x = Math.Round(cursorPosition.X);
                 y = Math.Round(cursorPosition.Y);
@@ -191,22 +179,21 @@ namespace BlueprintEditor
 
         public void RemoveVoxel(Point3D cameraPosition, Point3D cursorPosition)
         {
-            const double threshold = .0000000000000000001;
             double x, y, z;
 
-            if (Math.Abs(Math.IEEERemainder(cursorPosition.X, .5)) < threshold)
+            if (Math.Abs(Math.IEEERemainder(cursorPosition.X, .5)) < Threshold)
             {
                 x = (cameraPosition.X > cursorPosition.X ? -1 : 1) * .5 + cursorPosition.X;
                 y = Math.Round(cursorPosition.Y);
                 z = Math.Round(cursorPosition.Z);
             }
-            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Y, .5)) < threshold)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Y, .5)) < Threshold)
             {
                 x = Math.Round(cursorPosition.X);
                 y = (cameraPosition.Y > cursorPosition.Y ? -1 : 1) * .5 + cursorPosition.Y;
                 z = Math.Round(cursorPosition.Z);
             }
-            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Z, .5)) < threshold)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Z, .5)) < Threshold)
             {
                 x = Math.Round(cursorPosition.X);
                 y = Math.Round(cursorPosition.Y);
@@ -218,7 +205,7 @@ namespace BlueprintEditor
             }
 
             //Don't remove center voxel
-            if (Math.Abs(x) < threshold && Math.Abs(y) < threshold && Math.Abs(z) < threshold) return;
+            if (Math.Abs(x) < Threshold && Math.Abs(y) < Threshold && Math.Abs(z) < Threshold) return;
 
             var voxel = Voxels.FirstOrDefault(v => v.Center == new Point3D(x, y, z));
 
