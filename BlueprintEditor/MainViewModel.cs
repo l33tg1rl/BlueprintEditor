@@ -105,11 +105,35 @@ namespace BlueprintEditor
                 });
             }
 
-            SaveFileDialog saveFileDialog = new SaveFileDialog();
-            saveFileDialog.DefaultExt = "xml";
+            //SaveFileDialog saveFileDialog = new SaveFileDialog();
+          //  saveFileDialog.DefaultExt = "xml";
             //if(saveFileDialog.ShowDialog(this)
 
         }
+
+        //public Blueprint Blueprint
+        //{
+        //    get { return GetBlueprint(); }
+        //}
+
+        //private Blueprint GetBlueprint()
+        //{
+        //    var blueprint = new Blueprint();
+        //    blueprint.Voxels = new List<Voxel>();
+
+        //    foreach (var item in Voxels)
+        //    {
+        //        blueprint.Voxels.Add(new Voxel
+        //        {
+        //            XCoord = Convert.ToDecimal(item.Center.X),
+        //            YCoord = Convert.ToDecimal(item.Center.Y),
+        //            ZCoord = Convert.ToDecimal(item.Center.Z),
+        //            VectorColor = ((SolidColorBrush)item.Fill).Color
+        //        });
+        //    }
+
+        //    return blueprint;
+        //}
 
         //private void OnMouseLeftButtonDown(MouseButtonEventArgs args)
         //{
