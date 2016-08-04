@@ -2,7 +2,6 @@
 
 Features to add:
 
-- Save blueprint to file
-- Open blue print from file
 - Highlight voxel on mouse over
-- Tool buttons (Adding Voxels, Removing Voxels, Painting Voxels)
+- Add Paint tool
+- Abstract saving and loading blueprints. I don't want the View to know about the Blueprint object and I don't want the view model to necessarily care where blueprints are saved and loaded from.
