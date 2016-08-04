@@ -16,48 +16,26 @@
             <ToolBar>
                 <Button ToolTip="New Blueprint" Content="New" Command="{Binding NewBlueprintCommand}">
                 </Button>
-                <Button ToolTip="Open Blueprint" Content="Open">
+                <Button ToolTip="Open Blueprint" Content="Open" Click="OpenButtonOnClick">
                 </Button>
-                <Button ToolTip="Save Blueprint" Content="Save" Command="{Binding SaveBlueprintCommand}">
+                <Button ToolTip="Save Blueprint" Content="Save" Click="SaveButtonOnClick">
                 </Button>
                 <Separator></Separator>
                 <xctk:ColorPicker DisplayColorAndName="True" Width="200" SelectedColor="{Binding SelectedColor}"></xctk:ColorPicker>
             </ToolBar>
         </ToolBarTray>
-        <StatusBar DockPanel.Dock="Bottom">
+        <StatusBar DockPanel.Dock="Bottom" DataContext="{Binding ElementName=MainViewport3D}">
             <StatusBarItem>
-                <TextBlock Text="{Binding ElementName=MainViewport3D, Path=CursorOnElementPosition}"></TextBlock>
+                <TextBlock Text="{Binding Path=CursorOnElementPosition}"></TextBlock>
+            </StatusBarItem>
+            <StatusBarItem HorizontalAlignment="Right">
+                <TextBlock Text="{Binding Path=Camera.Position}"></TextBlock>
             </StatusBarItem>
         </StatusBar>
         <h:HelixViewport3D x:Name="MainViewport3D" CalculateCursorPosition="True" MouseLeftButtonDown="MainViewport3DOnMouseLeftButtonDown">
             <h:DefaultLights/>
             <h:GridLinesVisual3D></h:GridLinesVisual3D>
             <controls:ModelVisual3DContainer ItemsSource="{Binding Voxels}"/>
-            <!--<ContainerUIElement3D>
-                <ContainerUIElement3D.Children>
-                    <h:CubeVisual3D ></h:CubeVisual3D>
-                </ContainerUIElement3D.Children>
-            </ContainerUIElement3D>-->
-            <!--<blueprintEditor:ItemsVisual3D x:Name="VoxelContainer" ItemsSource="{Binding Path=Voxels}">
-                <blueprintEditor:ItemsVisual3D.ItemTemplate>
-                    <blueprintEditor:DataTemplate3D>
-                        <h:BoxVisual3D Center="{Binding Path=Location}" Fill="Red">
-                        </h:BoxVisual3D>
-                    </blueprintEditor:DataTemplate3D>
-                </blueprintEditor:ItemsVisual3D.ItemTemplate>
-            </blueprintEditor:ItemsVisual3D>-->
-            <!--<i:Interaction.Triggers>
-                <i:EventTrigger EventName="MouseDoubleClick">
-                    <command:EventToCommand
-                        Command="{Binding MouseDoubleClickCommand, Mode=OneWay}"
-                        PassEventArgsToCommand="True"/>
-                </i:EventTrigger>
-                <i:EventTrigger EventName="MouseLeftButtonDown">
-                    <command:EventToCommand
-                        Command="{Binding MouseLeftButtonDownCommand, Mode=OneWay}"
-                        PassEventArgsToCommand="True"/>
-                </i:EventTrigger>
-            </i:Interaction.Triggers>-->
         </h:HelixViewport3D>
     </DockPanel>
 </Window>

@@ -1,17 +1,12 @@
-﻿using System;
-using System.IO;
-using System.Runtime.Serialization;
+﻿using System.IO;
 using System.Xml.Serialization;
 
-namespace BlueprintEditor.Extensions
+namespace BlueprintEditor.Utilities
 {
     public static class XmlUtilities
     {
         public static void SerializeToFile<T>(T obj, string fileName) where T : new()
         {
-            if (!typeof(T).IsSerializable && !(typeof(ISerializable).IsAssignableFrom(typeof(T))))
-                throw new InvalidOperationException("Object must be serializable.");
-
             var serializer = new XmlSerializer(typeof(T));
 
             using (TextWriter writer = new StreamWriter(fileName))
@@ -20,18 +15,15 @@ namespace BlueprintEditor.Extensions
                 writer.Close();
             }
         }
-
-        public static void DeserializeFromFile<T>(string fileName, out T obj)
+        public static T DeserializeFromFile<T>(string fileName)
         {
-            if (!typeof(T).IsSerializable && !(typeof(ISerializable).IsAssignableFrom(typeof(T))))
-                throw new InvalidOperationException("Object must be serializable.");
-
             var serializer = new XmlSerializer(typeof(T));
 
             using (var reader = new StreamReader(fileName))
             {
-                obj = (T)serializer.Deserialize(reader);
+                var obj = (T)serializer.Deserialize(reader);
                 reader.Close();
+                return obj;
             }
         }
     }

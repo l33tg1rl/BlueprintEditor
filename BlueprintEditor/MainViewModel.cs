@@ -1,14 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.IO;
 using System.Linq;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Media.Media3D;
+using System.Xml.Serialization;
 using BlueprintEditor.Model;
 using GalaSoft.MvvmLight.CommandWpf;
 using HelixToolkit.Wpf;
-using Microsoft.Win32;
 
 namespace BlueprintEditor
 {
@@ -64,10 +65,9 @@ namespace BlueprintEditor
             }
         }
 
-        //public ICommand MouseLeftButtonDownCommand { get; private set; }
-        //public ICommand MouseDoubleClickCommand { get; private set; }
         public ICommand NewBlueprintCommand { get; private set; }
         public ICommand SaveBlueprintCommand { get; private set; }
+        public ICommand OpenBlueprintCommand { get; private set; }
 
         public MainViewModel()
         {
@@ -79,9 +79,8 @@ namespace BlueprintEditor
         private void RegisterCommands()
         {
             NewBlueprintCommand = new RelayCommand(NewBlueprint);
-            SaveBlueprintCommand = new RelayCommand(SaveBlueprint);
-            //MouseLeftButtonDownCommand = new RelayCommand<MouseButtonEventArgs>(OnMouseLeftButtonDown);
-            //MouseDoubleClickCommand = new RelayCommand<MouseButtonEventArgs>(MouseDoubleClick);
+            SaveBlueprintCommand = new RelayCommand<Tuple<Action<Blueprint, string>, string>>(SaveBlueprint);
+            OpenBlueprintCommand = new RelayCommand<Tuple<Func<string, Blueprint>, string>>(OpenBlueprint);
         }
 
         private void NewBlueprint()
@@ -89,7 +88,28 @@ namespace BlueprintEditor
             Voxels = new ObservableCollection<BoxVisual3D> { new BoxVisual3D { Center = new Point3D(0, 0, 0), Fill = new SolidColorBrush(SelectedColor)} };
         }
 
-        private void SaveBlueprint()
+        private void SaveBlueprint(Tuple<Action<Blueprint, string>, string> tuple)
+        {
+            Blueprint blueprint = BuildBlueprint();
+            tuple.Item1.Invoke(blueprint, tuple.Item2);
+        }
+
+        public void OpenBlueprint(Tuple<Func<string, Blueprint>, string> tuple)
+        {
+            Blueprint blueprint = tuple.Item1.Invoke(tuple.Item2);
+            Voxels = new ObservableCollection<BoxVisual3D>();
+
+            foreach (Voxel voxel in blueprint.Voxels)
+            {
+                Voxels.Add(new BoxVisual3D
+                {
+                    Center = new Point3D(Convert.ToDouble(voxel.XCoord), Convert.ToDouble(voxel.YCoord), Convert.ToDouble(voxel.ZCoord)),
+                    Fill = new SolidColorBrush(voxel.VectorColor)
+                });
+            }
+        }
+
+        private Blueprint BuildBlueprint()
         {
             var blueprint = new Blueprint();
             blueprint.Voxels = new List<Voxel>();
@@ -105,70 +125,38 @@ namespace BlueprintEditor
                 });
             }
 
-            //SaveFileDialog saveFileDialog = new SaveFileDialog();
-          //  saveFileDialog.DefaultExt = "xml";
-            //if(saveFileDialog.ShowDialog(this)
-
+            return blueprint;
         }
 
-        //public Blueprint Blueprint
-        //{
-        //    get { return GetBlueprint(); }
-        //}
+        private void SaveBlueprint(StreamWriter writer)
+        {
+            Blueprint blueprint = BuildBlueprint();
+            XmlSerializer serializer = new XmlSerializer(typeof(Blueprint));
+            serializer.Serialize(writer, blueprint);
+        }
 
-        //private Blueprint GetBlueprint()
-        //{
-        //    var blueprint = new Blueprint();
-        //    blueprint.Voxels = new List<Voxel>();
+        public void OpenBlueprint(StreamReader reader)
+        {
+            XmlSerializer serializer = new XmlSerializer(typeof(Blueprint));
+            Blueprint blueprint = (Blueprint) serializer.Deserialize(reader);
+            Voxels = new ObservableCollection<BoxVisual3D>();
 
-        //    foreach (var item in Voxels)
-        //    {
-        //        blueprint.Voxels.Add(new Voxel
-        //        {
-        //            XCoord = Convert.ToDecimal(item.Center.X),
-        //            YCoord = Convert.ToDecimal(item.Center.Y),
-        //            ZCoord = Convert.ToDecimal(item.Center.Z),
-        //            VectorColor = ((SolidColorBrush)item.Fill).Color
-        //        });
-        //    }
-
-        //    return blueprint;
-        //}
-
-        //private void OnMouseLeftButtonDown(MouseButtonEventArgs args)
-        //{
-        //    HandleEvent(args, AddVoxel);
-        //}
-
-        //private void MouseDoubleClick(MouseButtonEventArgs args)
-        //{
-        //    HandleEvent(args, RemoveVoxel);
-        //}
-
-        //private void HandleEvent(MouseButtonEventArgs args, Action<Point3D, Point3D> voxelMethod)
-        //{
-        //    if (args == null) return;
-        //    args.Handled = true;
-        //    if (args.ChangedButton != MouseButton.Left) return;
-
-        //    var viewport = args.Source as HelixViewport3D;
-        //    if (viewport == null) return;
-
-        //    Point3D? cursorPosition = viewport.CursorOnElementPosition;
-
-        //    if (cursorPosition.HasValue)
-        //    {
-        //        Point3D cameraPosition = viewport.Camera.Position;
-        //        voxelMethod(cameraPosition, cursorPosition.Value);
-        //    }
-        //}
+            foreach (Voxel voxel in blueprint.Voxels)
+            {
+                Voxels.Add(new BoxVisual3D
+                {
+                    Center = new Point3D(Convert.ToDouble(voxel.XCoord), Convert.ToDouble(voxel.YCoord), Convert.ToDouble(voxel.ZCoord)), 
+                    Fill = new SolidColorBrush(voxel.VectorColor)
+                });
+            }
+        }
 
         public void AddVoxel(Point3D cameraPosition, Point3D cursorPosition)
         {
             double x, y, z, offset;
             Point3D voxelPoint;
 
-            if (Math.Abs(Math.IEEERemainder(cursorPosition.X, .5)) < Threshold)
+            if (Math.Abs(Math.IEEERemainder(cursorPosition.X, .5)) < Threshold) //X Plane
             {
                 x = (cameraPosition.X > cursorPosition.X ? -1 : 1) * .5 + cursorPosition.X;
                 y = Math.Round(cursorPosition.Y);
@@ -176,7 +164,7 @@ namespace BlueprintEditor
                 offset = cameraPosition.X > 0 ? 1 : -1;
                 voxelPoint = new Point3D(x + offset, y, z);
             }
-            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Y, .5)) < Threshold)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Y, .5)) < Threshold) //Y Plane
             {
                 x = Math.Round(cursorPosition.X);
                 y = (cameraPosition.Y > cursorPosition.Y ? -1 : 1) * .5 + cursorPosition.Y;
@@ -184,7 +172,7 @@ namespace BlueprintEditor
                 offset = cameraPosition.Y > 0 ? 1 : -1;
                 voxelPoint = new Point3D(x, y + offset, z);
             }
-            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Z, .5)) < Threshold)
+            else if (Math.Abs(Math.IEEERemainder(cursorPosition.Z, .5)) < Threshold) //Z Plane
             {
                 x = Math.Round(cursorPosition.X);
                 y = Math.Round(cursorPosition.Y);
